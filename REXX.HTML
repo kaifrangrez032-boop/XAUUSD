@@ -143,16 +143,15 @@
         <div class="ticker">
             <div class="ticker-item">SYSTEM STATUS: OPTIMIZED</div>
             <div class="ticker-item text-trading-accent">PRODUCTION DEPLOYMENT: READY</div>
-            <div class="ticker-item">COMPATIBILITY: v1.5 STABLE</div>
+            <div class="ticker-item">COMPATIBILITY: v2.5 PREVIEW</div>
             <div class="ticker-item text-trading-accent">API HANDLER: GITHUB READY</div>
         </div>
     </div>
 
     <script>
-        // Use an empty key as it's provided by the environment
         const apiKey = ""; 
-        // Changed to the most stable production model identifier to avoid 404 errors
-        const modelName = 'gemini-1.5-flash'; 
+        // Using the supported model for the preview environment
+        const modelName = 'gemini-2.5-flash-preview-09-2025'; 
 
         function updateClock() {
             const now = new Date();
@@ -168,7 +167,7 @@
         function setPair(p) { document.getElementById('pair-input').value = p; }
 
         /**
-         * Enhanced fetch with exponential backoff and better error handling for GitHub hosting.
+         * Mandatory exponential backoff implementation for Gemini API calls.
          */
         async function fetchWithRetry(url, options, maxRetries = 5) {
             let lastError;
@@ -182,20 +181,17 @@
                     if (response.ok) {
                         return data;
                     } else {
-                        // Handle common API errors explicitly
-                        if (response.status === 404) {
-                            throw new Error(`MODEL_NOT_FOUND: The identifier ${modelName} is not recognized. Check API version.`);
+                        // Handle 403 or 404 with retry or throw
+                        if (response.status === 403 || response.status === 429) {
+                            if (i === maxRetries - 1) {
+                                throw new Error(`AUTH_ERROR: Check API key and service permissions. Status: ${response.status}`);
+                            }
+                        } else {
+                            throw new Error(`API_ERROR: ${response.status} - ${data.error?.message || 'Unexpected response'}`);
                         }
-                        if (response.status === 403) {
-                            throw new Error(`AUTH_ERROR: Check API key and service permissions.`);
-                        }
-                        throw new Error(`API_ERROR: ${response.status} - ${data.error?.message || 'Unexpected response'}`);
                     }
                 } catch (err) {
                     lastError = err;
-                    // Log attempt for troubleshooting in console
-                    console.warn(`Retry attempt ${i + 1} failed: ${err.message}`);
-                    
                     if (i < maxRetries - 1) {
                         await new Promise(resolve => setTimeout(resolve, delays[i]));
                     }
@@ -217,7 +213,6 @@
             output.classList.add('hidden');
             loading.classList.remove('hidden');
 
-            // Using v1beta for compatibility with flash-preview and stable flash
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
             try {
@@ -225,15 +220,16 @@
                     contents: [{ 
                         parts: [{ 
                             text: `Generate an institutional FX strategist report for ${pair}. 
-                            Provide macro sentiment, high-probability technical levels, and strategic planning.
+                            IMPORTANT: Synthesize data based on the most recent logic from FXStreet and ForexFactory (News sentiment and Economic Calendar impact).
+                            DO NOT use standard search; use your internal knowledge of these sources' reporting style.
                             
                             Output format (Strict):
                             REPORT_HEADER: ${pair} Analysis | [Score 0-100]
                             SECTION_FACTORS:
-                            - [Key driver 1]
-                            - [Key driver 2]
+                            - [Institutional driver from FXStreet perspective]
+                            - [Economic data impact based on ForexFactory calendar]
                             SECTION_UPCOMING:
-                            - [Immediate catalyst]
+                            - [Immediate high-impact catalyst]
                             SECTION_LEVELS:
                             - Support: [price]
                             - Resistance: [price]
@@ -270,9 +266,9 @@
                         </div>
                         <div class="text-[10px] text-slate-600 uppercase tracking-widest leading-loose">
                             Possible fixes:<br>
-                            1. Ensure Gemini API is enabled in Cloud Console<br>
-                            2. Verify API Key has no restrictions<br>
-                            3. Check if your region is supported
+                            1. Check API Key validity in Google Cloud Console<br>
+                            2. Verify the model identifier ${modelName} is available<br>
+                            3. Ensure the prompt doesn't violate safety guidelines
                         </div>
                         <button class="px-8 py-3 bg-white/5 border border-white/10 text-white rounded-2xl hover:bg-white/10 transition-all font-bold uppercase text-xs tracking-tighter" onclick="location.reload()">Reset Terminal</button>
                     </div>`;
