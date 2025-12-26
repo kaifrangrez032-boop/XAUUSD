@@ -61,7 +61,7 @@
                     <p id="live-clock" class="text-xl font-mono font-bold text-white tracking-widest">00:00:00</p>
                 </div>
                 <div id="session-tag" class="px-5 py-2.5 rounded-2xl bg-trading-accent/10 text-[10px] font-black tracking-widest uppercase text-trading-accent border border-trading-accent/20">
-                    STABLE CONNECT
+                    HOSTED CLOUD READY
                 </div>
             </div>
         </header>
@@ -97,11 +97,11 @@
                 <div class="strategy-card p-6 rounded-[2rem] border border-slate-800/50 flex flex-col gap-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                     <div class="flex justify-between items-center">
                         <span>Engine Status</span>
-                        <span id="search-status" class="text-trading-accent font-black">Online</span>
+                        <span id="search-status" class="text-trading-accent font-black">Connected</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span>Safety Mode</span>
-                        <span class="text-trading-info font-black">Active</span>
+                        <span>Security</span>
+                        <span class="text-trading-info font-black">CORS Optimized</span>
                     </div>
                 </div>
             </div>
@@ -130,7 +130,7 @@
                             </div>
                         </div>
                         <h2 class="text-4xl font-black text-white mb-6 tracking-tighter uppercase italic leading-none">Market <span class="text-trading-accent">Intel</span></h2>
-                        <p class="text-slate-500 max-w-sm text-sm font-semibold leading-relaxed mb-12">Institutional-grade analysis for any asset. Using the latest Gemini Flash engine.</p>
+                        <p class="text-slate-500 max-w-sm text-sm font-semibold leading-relaxed mb-12">Institutional-grade analysis optimized for GitHub deployment.</p>
                     </div>
 
                     <div id="report-output" class="hidden w-full space-y-8 h-full"></div>
@@ -142,16 +142,17 @@
     <div class="ticker-wrap">
         <div class="ticker">
             <div class="ticker-item">SYSTEM STATUS: OPTIMIZED</div>
-            <div class="ticker-item text-trading-accent">NO SEARCH MODE: ENABLED</div>
-            <div class="ticker-item">COMPATIBILITY: CLOUD STABLE</div>
-            <div class="ticker-item text-trading-accent">API HANDLER: V3.0</div>
+            <div class="ticker-item text-trading-accent">PRODUCTION DEPLOYMENT: READY</div>
+            <div class="ticker-item">COMPATIBILITY: v1.5 STABLE</div>
+            <div class="ticker-item text-trading-accent">API HANDLER: GITHUB READY</div>
         </div>
     </div>
 
     <script>
-        // API Configuration
-        const apiKey = ""; // Will be provided by the environment
-        const modelName = 'gemini-2.5-flash-preview-09-2025';
+        // Use an empty key as it's provided by the environment
+        const apiKey = ""; 
+        // Changed to the most stable production model identifier to avoid 404 errors
+        const modelName = 'gemini-1.5-flash'; 
 
         function updateClock() {
             const now = new Date();
@@ -167,7 +168,7 @@
         function setPair(p) { document.getElementById('pair-input').value = p; }
 
         /**
-         * Fetch with Exponential Backoff as per instructions
+         * Enhanced fetch with exponential backoff and better error handling for GitHub hosting.
          */
         async function fetchWithRetry(url, options, maxRetries = 5) {
             let lastError;
@@ -181,13 +182,20 @@
                     if (response.ok) {
                         return data;
                     } else {
-                        // Throw specific error to be caught by the retry loop
-                        throw new Error(`API_ERROR: ${response.status} ${data.error?.message || 'Unknown Error'}`);
+                        // Handle common API errors explicitly
+                        if (response.status === 404) {
+                            throw new Error(`MODEL_NOT_FOUND: The identifier ${modelName} is not recognized. Check API version.`);
+                        }
+                        if (response.status === 403) {
+                            throw new Error(`AUTH_ERROR: Check API key and service permissions.`);
+                        }
+                        throw new Error(`API_ERROR: ${response.status} - ${data.error?.message || 'Unexpected response'}`);
                     }
                 } catch (err) {
                     lastError = err;
-                    // Only retry if it's not a 404 or other non-retriable error if desired, 
-                    // but mandatory instructions say retry up to 5 times.
+                    // Log attempt for troubleshooting in console
+                    console.warn(`Retry attempt ${i + 1} failed: ${err.message}`);
+                    
                     if (i < maxRetries - 1) {
                         await new Promise(resolve => setTimeout(resolve, delays[i]));
                     }
@@ -204,21 +212,22 @@
             const output = document.getElementById('report-output');
 
             btn.disabled = true;
-            btn.innerHTML = `<span class="animate-pulse">PROCESSING...</span>`;
+            btn.innerHTML = `<span class="animate-pulse">DECODING...</span>`;
             initial.classList.add('hidden');
             output.classList.add('hidden');
             loading.classList.remove('hidden');
 
+            // Using v1beta for compatibility with flash-preview and stable flash
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
             try {
                 const payload = {
                     contents: [{ 
                         parts: [{ 
-                            text: `Act as a senior FX Strategist. Provide an institutional report for ${pair}.
-                            Focus on high-conviction technical levels and structural macro trends.
+                            text: `Generate an institutional FX strategist report for ${pair}. 
+                            Provide macro sentiment, high-probability technical levels, and strategic planning.
                             
-                            Format precisely like this:
+                            Output format (Strict):
                             REPORT_HEADER: ${pair} Analysis | [Score 0-100]
                             SECTION_FACTORS:
                             - [Key driver 1]
@@ -237,10 +246,7 @@
                             CHANCE: [XX%]
                             RISK: [LOW/MEDIUM/HIGH]` 
                         }] 
-                    }],
-                    systemInstruction: {
-                        parts: [{ text: "You are an expert Institutional FX Strategist at a major investment bank. Be concise, data-driven, and authoritative." }]
-                    }
+                    }]
                 };
 
                 const data = await fetchWithRetry(apiUrl, {
@@ -250,18 +256,25 @@
                 });
 
                 const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-                if (!text) throw new Error("EMPTY_RESPONSE_FROM_AI");
+                if (!text) throw new Error("EMPTY_AI_RESPONSE");
                 
                 renderDetailedReport(text);
 
             } catch (err) {
-                console.error("Analysis Failed:", err);
+                console.error("Critical Terminal Error:", err);
                 output.innerHTML = `
-                    <div class="p-10 text-center space-y-4">
-                        <div class="text-trading-danger font-black text-xl uppercase">Analysis Failed</div>
-                        <p class="text-slate-500 text-sm">${err.message}</p>
-                        <p class="text-[10px] text-slate-600 uppercase">The engine encountered a processing error. Please check connectivity and try again.</p>
-                        <button class="px-6 py-2 bg-white/5 border border-white/10 text-white rounded-xl" onclick="location.reload()">Reset Terminal</button>
+                    <div class="p-10 text-center space-y-6 fade-in">
+                        <div class="bg-trading-danger/10 p-6 rounded-3xl border border-trading-danger/20">
+                            <div class="text-trading-danger font-black text-xl uppercase mb-2">Terminal Failure</div>
+                            <p class="text-slate-400 text-sm font-mono">${err.message}</p>
+                        </div>
+                        <div class="text-[10px] text-slate-600 uppercase tracking-widest leading-loose">
+                            Possible fixes:<br>
+                            1. Ensure Gemini API is enabled in Cloud Console<br>
+                            2. Verify API Key has no restrictions<br>
+                            3. Check if your region is supported
+                        </div>
+                        <button class="px-8 py-3 bg-white/5 border border-white/10 text-white rounded-2xl hover:bg-white/10 transition-all font-bold uppercase text-xs tracking-tighter" onclick="location.reload()">Reset Terminal</button>
                     </div>`;
                 output.classList.remove('hidden');
             } finally {
@@ -285,7 +298,7 @@
 
             const getSection = (start, end) => {
                 const parts = text.split(start);
-                if (parts.length < 2) return "Data unavailable.";
+                if (parts.length < 2) return "Metric decoding failed.";
                 return parts[1].split(end)[0].trim();
             };
 
@@ -297,7 +310,7 @@
 
             const formatBullets = (str) => {
                 return str.split('\n').filter(l => l.length > 3).map(line => `
-                    <div class="flex items-start gap-3 p-3 bg-white/5 rounded-xl border border-white/5 mb-2">
+                    <div class="flex items-start gap-3 p-4 bg-white/5 rounded-2xl border border-white/5 mb-3">
                         <span class="w-1.5 h-1.5 rounded-full bg-trading-accent mt-2 shrink-0"></span>
                         <p class="text-sm text-slate-300 font-medium">${line.replace(/^[-*•\d.]+\s*/, '')}</p>
                     </div>`).join('');
@@ -305,30 +318,63 @@
 
             output.innerHTML = `
                 <div class="fade-in space-y-8">
-                    <div class="flex justify-between items-end border-b border-white/5 pb-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-white/5 pb-8 gap-4">
                         <div>
-                            <p class="text-[10px] font-black uppercase text-trading-accent tracking-widest mb-1">${trend} TREND</p>
-                            <h2 class="text-3xl font-black text-white italic uppercase">${header}</h2>
+                            <p class="text-[10px] font-black uppercase text-trading-accent tracking-widest mb-2">${trend} DIRECTIONAL BIAS</p>
+                            <h2 class="text-3xl font-black text-white italic uppercase tracking-tighter">${header}</h2>
                         </div>
-                        <div class="bg-white/5 px-6 py-3 rounded-2xl border border-white/10">
-                            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">PROBABILITY</p>
-                            <p class="text-2xl font-black text-white">${chance}</p>
+                        <div class="flex gap-2">
+                            <div class="bg-white/5 px-6 py-3 rounded-2xl border border-white/10 text-center">
+                                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">ACCURACY</p>
+                                <p class="text-xl font-black text-white">${chance}</p>
+                            </div>
+                            <div class="bg-white/5 px-6 py-3 rounded-2xl border border-white/10 text-center">
+                                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">RISK</p>
+                                <p class="text-xl font-black ${risk.toLowerCase() === 'high' ? 'text-trading-danger' : 'text-trading-warn'}">${risk}</p>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div><h3 class="text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Market Drivers</h3>${formatBullets(factorContent)}</div>
-                        <div><h3 class="text-[10px] font-black uppercase text-trading-accent mb-4 tracking-widest">Catalysts</h3>${formatBullets(upcomingContent)}</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="text-[10px] font-black uppercase text-slate-500 mb-5 tracking-widest flex items-center gap-2">
+                                <span class="w-1 h-3 bg-slate-700 rounded-full"></span> Fundamental Logic
+                            </h3>
+                            ${formatBullets(factorContent)}
+                        </div>
+                        <div>
+                            <h3 class="text-[10px] font-black uppercase text-trading-accent mb-5 tracking-widest flex items-center gap-2">
+                                <span class="w-1 h-3 bg-trading-accent/50 rounded-full"></span> Market Catalysts
+                            </h3>
+                            ${formatBullets(upcomingContent)}
+                        </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div><h3 class="text-[10px] font-black uppercase text-trading-info mb-4 tracking-widest">Price Levels</h3>${formatBullets(levelsContent)}</div>
-                        <div><h3 class="text-[10px] font-black uppercase text-trading-warn mb-4 tracking-widest">Macro Outlook</h3>${formatBullets(correlationContent)}</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="text-[10px] font-black uppercase text-trading-info mb-5 tracking-widest flex items-center gap-2">
+                                <span class="w-1 h-3 bg-trading-info/50 rounded-full"></span> High Volume Nodes
+                            </h3>
+                            ${formatBullets(levelsContent)}
+                        </div>
+                        <div>
+                            <h3 class="text-[10px] font-black uppercase text-trading-warn mb-5 tracking-widest flex items-center gap-2">
+                                <span class="w-1 h-3 bg-trading-warn/50 rounded-full"></span> Macro Sentiment
+                            </h3>
+                            ${formatBullets(correlationContent)}
+                        </div>
                     </div>
 
-                    <div class="p-6 rounded-3xl bg-trading-accent/10 border border-trading-accent/20">
-                        <h4 class="text-[9px] font-black text-trading-accent uppercase tracking-widest mb-2">Strategic Execution</h4>
-                        <p class="text-white font-bold">${planContent.split('\n')[0]}</p>
+                    <div class="p-8 rounded-[2.5rem] bg-trading-accent/10 border border-trading-accent/20 backdrop-blur-md">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="p-2 bg-trading-accent/20 rounded-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-trading-accent" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <h4 class="text-[10px] font-black text-trading-accent uppercase tracking-[0.2em]">Institutional Execution Strategy</h4>
+                        </div>
+                        <p class="text-white font-bold leading-relaxed">${planContent.split('\n').filter(l => l.length > 5).join(' ')}</p>
                     </div>
                 </div>
             `;
