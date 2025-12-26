@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Strategy Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof tailwind !== 'undefined') {
+                tailwind.config = {
+                    theme: {
+                        extend: {
+                            fontFamily: { sans: ['Inter', 'sans-serif'] },
+                            colors: {
+                                'trading-dark': '#07070a',
+                                'trading-card': '#0f0f16',
+                                'trading-accent': '#00ff9d', 
+                                'trading-danger': '#ff4646',
+                                'trading-warn': '#ffcc00',
+                                'trading-info': '#3b82f6'
+                            }
+                        }
+                    }
+                };
+            }
+        });
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+        body { background-color: #07070a; color: #ffffff; overflow-x: hidden; }
+        .glow-border { border: 1px solid rgba(0, 255, 157, 0.1); transition: all 0.3s ease; }
+        .glow-border:hover { border-color: rgba(0, 255, 157, 0.4); box-shadow: 0 0 20px rgba(0, 255, 157, 0.05); }
+        .strategy-card { background: #0f0f16; border: 1px solid #1a1a24; }
+        .ticker-wrap { width: 100%; overflow: hidden; background: #0f0f16; border-top: 1px solid #1a1a24; padding: 10px 0; position: fixed; bottom: 0; left: 0; z-index: 50; }
+        .ticker { display: inline-block; white-space: nowrap; animation: ticker 30s linear infinite; }
+        .ticker-item { display: inline-block; padding: 0 2rem; font-size: 10px; font-weight: 900; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        .btn-glow:hover { box-shadow: 0 0 15px rgba(0, 255, 157, 0.3); }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #07070a; }
+        ::-webkit-scrollbar-thumb { background: #1a1a24; border-radius: 10px; }
+        .fade-in { animation: fadeIn 0.5s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 font-sans pb-24 flex items-center justify-center">
+    <div class="w-full max-w-7xl mx-auto space-y-6">
+        
+        <header class="flex flex-col md:flex-row justify-between items-center gap-6 bg-trading-card/50 p-6 md:p-8 rounded-[2rem] border border-white/5 backdrop-blur-md">
+            <div class="flex flex-col items-center md:items-start text-center md:text-left">
+                <h1 class="text-2xl md:text-3xl font-black tracking-tighter text-white uppercase flex items-center gap-2">
+                    <span class="bg-trading-accent text-black px-2 py-0.5 rounded italic">FX</span> STRATEGY
+                </h1>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.3em] mt-1">Deep Intelligence Terminal v4.2</p>
+            </div>
+            
+            <div class="flex flex-wrap justify-center items-center gap-4 md:gap-8">
+                <div class="text-center md:text-right border-r border-white/10 pr-4 md:pr-8 hidden sm:block">
+                    <p class="text-[9px] text-slate-500 uppercase font-black tracking-widest">Market Time (UTC)</p>
+                    <p id="live-clock" class="text-xl font-mono font-bold text-white tracking-widest">00:00:00</p>
+                </div>
+                <div id="session-tag" class="px-5 py-2.5 rounded-2xl bg-trading-accent/10 text-[10px] font-black tracking-widest uppercase text-trading-accent border border-trading-accent/20">
+                    CONNECTING...
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-4 space-y-4">
+                <div class="strategy-card p-8 rounded-[2.5rem] glow-border shadow-2xl">
+                    <div class="flex items-center justify-between mb-10">
+                        <span class="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em]">Command Center</span>
+                        <span class="w-2 h-2 rounded-full bg-trading-accent animate-pulse"></span>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-[10px] uppercase font-bold text-slate-500 mb-3 block ml-1 tracking-widest">Asset Pair</label>
+                            <input type="text" id="pair-input" placeholder="e.g. EUR/USD" 
+                                   class="w-full bg-trading-dark border border-slate-800 rounded-[1.25rem] p-5 text-white font-black text-lg focus:outline-none focus:border-trading-accent transition-all placeholder:text-slate-800 shadow-inner">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <button class="py-4 bg-slate-900/30 border border-slate-800 rounded-2xl text-[11px] font-black hover:bg-trading-accent hover:text-black transition-all text-white uppercase tracking-tighter" onclick="setPair('EUR/USD')">EURUSD</button>
+                            <button class="py-4 bg-slate-900/30 border border-slate-800 rounded-2xl text-[11px] font-black hover:bg-trading-accent hover:text-black transition-all text-white uppercase tracking-tighter" onclick="setPair('GBP/USD')">GBPUSD</button>
+                            <button class="py-4 bg-slate-900/30 border border-slate-800 rounded-2xl text-[11px] font-black hover:bg-trading-accent hover:text-black transition-all text-white uppercase tracking-tighter" onclick="setPair('XAU/USD')">GOLD</button>
+                            <button class="py-4 bg-slate-900/30 border border-slate-800 rounded-2xl text-[11px] font-black hover:bg-trading-accent hover:text-black transition-all text-white uppercase tracking-tighter" onclick="setPair('USD/JPY')">USDJPY</button>
+                        </div>
+
+                        <button id="generate-btn" class="btn-glow w-full bg-trading-accent text-black font-black py-6 rounded-3xl mt-4 hover:scale-[1.01] active:scale-[0.98] transition-all uppercase tracking-tighter text-sm">
+                            Run Deep Analysis
+                        </button>
+                    </div>
+                </div>
+
+                <div class="strategy-card p-6 rounded-[2rem] border border-slate-800/50 flex flex-col gap-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                    <div class="flex justify-between items-center">
+                        <span>Search Engine</span>
+                        <span id="search-status" class="text-trading-accent font-black">Ready</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span>News Predictor</span>
+                        <span class="text-trading-info font-black">Active</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span>Price Levels</span>
+                        <span class="text-trading-warn font-black">Scanning</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8">
+                <div id="report-container" class="strategy-card rounded-[3rem] p-6 md:p-12 min-h-[680px] border border-slate-800/50 relative overflow-hidden flex flex-col items-center justify-center">
+                    
+                    <div id="loading-state" class="hidden space-y-10 py-20 text-center w-full">
+                        <div class="relative flex justify-center">
+                            <div class="w-24 h-24 rounded-full border-b-2 border-trading-accent animate-spin"></div>
+                            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-trading-accent font-black text-[10px] tracking-widest">AI</div>
+                        </div>
+                        <div class="space-y-2">
+                            <p class="text-white font-black uppercase tracking-[0.5em] text-xs">Triangulating Data...</p>
+                            <p class="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]" id="loading-sub">Analyzing News Impact</p>
+                        </div>
+                    </div>
+
+                    <div id="initial-state" class="flex flex-col items-center justify-center h-full text-center py-10 w-full">
+                        <div class="relative mb-14">
+                            <div class="absolute inset-0 bg-trading-accent/10 blur-[100px] rounded-full"></div>
+                            <div class="relative w-36 h-36 bg-slate-900/30 rounded-full flex items-center justify-center border border-white/5 shadow-2xl backdrop-blur-sm">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-trading-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <h2 class="text-4xl font-black text-white mb-6 tracking-tighter uppercase italic leading-none">Deep <span class="text-trading-accent">Scan</span></h2>
+                        <p class="text-slate-500 max-w-sm text-sm font-semibold leading-relaxed mb-12">Generates a multi-factor report: <br> News Impact + Technical Levels + DXY Correlation.</p>
+                    </div>
+
+                    <div id="report-output" class="hidden w-full space-y-8 h-full"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ticker-wrap">
+        <div class="ticker">
+            <div class="ticker-item">FXSTREET: LIVE</div>
+            <div class="ticker-item">NEWS PREDICTION: ACTIVE</div>
+            <div class="ticker-item text-trading-accent">COT INSTITUTIONAL DATA: SCANNING</div>
+            <div class="ticker-item">TECHNICAL LEVELS: MAPPED</div>
+            <div class="ticker-item text-trading-accent">BOND YIELDS: CHECKING</div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration - Always set to empty string for environment injection
+        const apiKey = ""; 
+        const modelName = 'gemini-2.5-flash-preview-09-2025';
+
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.getUTCHours().toString().padStart(2, '0') + ":" + 
+                            now.getUTCMinutes().toString().padStart(2, '0') + ":" + 
+                            now.getUTCSeconds().toString().padStart(2, '0');
+            const clockEl = document.getElementById('live-clock');
+            if (clockEl) clockEl.textContent = timeStr;
+            const hours = now.getUTCHours();
+            const tag = document.getElementById('session-tag');
+            if (tag) {
+                if (hours >= 8 && hours < 16) tag.textContent = 'London Session';
+                else if (hours >= 13 && hours < 21) tag.textContent = 'New York Session';
+                else tag.textContent = 'Asian/Off-Peak';
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function setPair(p) { document.getElementById('pair-input').value = p; }
+
+        async function fetchWithRetry(url, options, retries = 5) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    
+                    if (response.status === 403 || response.status === 401) {
+                        throw new Error(`PERM_DENIED_${response.status}`);
+                    }
+                    if (!response.ok) {
+                        throw new Error(`HTTP_${response.status}`);
+                    }
+                    return await response.json();
+                } catch (err) {
+                    // Do not retry on 403/401 permissions errors
+                    if (err.message.includes('PERM_DENIED')) throw err;
+                    if (i === retries - 1) throw err;
+                    
+                    const delay = Math.pow(2, i) * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+
+        async function generateReport() {
+            const pair = document.getElementById('pair-input').value.trim().toUpperCase() || "EUR/USD";
+            const btn = document.getElementById('generate-btn');
+            const loading = document.getElementById('loading-state');
+            const initial = document.getElementById('initial-state');
+            const output = document.getElementById('report-output');
+            const loadingSub = document.getElementById('loading-sub');
+            const searchStatus = document.getElementById('search-status');
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="animate-pulse">DEEP SCANNING...</span>`;
+            initial.classList.add('hidden');
+            output.classList.add('hidden');
+            loading.classList.remove('hidden');
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+
+            const makeApiCall = async (useTools) => {
+                const searchPrompt = useTools 
+                    ? `Use Google Search to find real-time sentiment and the 48-hour economic calendar for ${pair}. Look for FXStreet or ForexFactory results.` 
+                    : `Provide a detailed market analysis for ${pair} based on historical fundamental patterns and institutional psychology. NOTE: Search tools are currently unavailable, so rely on your extensive internal knowledge of current trends and correlations.`;
+
+                const payload = {
+                    contents: [{ 
+                        parts: [{ 
+                            text: `Act as a senior institutional FX Strategist. 
+                            Task: Analyze ${pair}.
+                            ${searchPrompt}
+                            
+                            Structure MUST be exactly:
+                            REPORT_HEADER: ${pair} Analysis | [Score 0-100]
+                            
+                            SECTION_FACTORS:
+                            - [Bullet points on current drivers]
+                            
+                            SECTION_UPCOMING:
+                            - [Specific event]: Impact prediction -> Expected Direction
+                            
+                            SECTION_LEVELS:
+                            - Support: [price]
+                            - Resistance: [price]
+                            
+                            SECTION_CORRELATION:
+                            - DXY impact explanation
+                            
+                            SECTION_PLAN:
+                            - Clear 2-sentence strategy
+                            
+                            METRICS:
+                            TREND: [UP/DOWN/SIDEWAYS]
+                            CHANCE: [XX%]
+                            RISK: [LOW/MEDIUM/HIGH]` 
+                        }] 
+                    }]
+                };
+
+                if (useTools) {
+                    payload.tools = [{ "google_search": {} }];
+                }
+
+                return await fetchWithRetry(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            };
+
+            try {
+                let data;
+                loadingSub.textContent = "Scanning Global News & Calendars...";
+                
+                try {
+                    // Try with Search Tool first
+                    data = await makeApiCall(true);
+                    searchStatus.textContent = "Live Feed";
+                    searchStatus.className = "text-trading-accent font-black";
+                } catch (e) {
+                    // If Search fails (403), fallback to model-only content
+                    console.warn("Search Tool restricted (403). Falling back to internal intelligence.");
+                    loadingSub.textContent = "Access Restricted. Running Logic-Only Scan...";
+                    searchStatus.textContent = "Internal Model";
+                    searchStatus.className = "text-trading-info font-black";
+                    data = await makeApiCall(false);
+                }
+
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                if (!text) throw new Error("Empty Response");
+
+                renderDetailedReport(text);
+
+            } catch (err) {
+                console.error("Terminal Error:", err);
+                output.innerHTML = `
+                    <div class="p-10 text-center space-y-6">
+                        <div class="w-16 h-16 bg-trading-danger/10 text-trading-danger rounded-full flex items-center justify-center mx-auto border border-trading-danger/20">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        </div>
+                        <div class="space-y-2">
+                            <p class="text-white font-black uppercase tracking-widest">Authentication Failed</p>
+                            <p class="text-slate-500 text-sm max-w-xs mx-auto">The model server returned a 403 Forbidden error. This usually indicates the API key is invalid or restricted in this environment.</p>
+                        </div>
+                        <button class="px-8 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all" onclick="location.reload()">Reset Terminal</button>
+                    </div>`;
+                output.classList.remove('hidden');
+            } finally {
+                loading.classList.add('hidden');
+                btn.disabled = false;
+                btn.textContent = "Run Deep Analysis";
+            }
+        }
+
+        function renderDetailedReport(text) {
+            const output = document.getElementById('report-output');
+            
+            const getField = (regex, fallback) => {
+                const match = text.match(regex);
+                return match ? match[1].trim() : fallback;
+            };
+
+            const header = getField(/REPORT_HEADER:\s*(.*)/i, "MARKET ANALYSIS");
+            const trend = getField(/TREND:\s*(\w+)/i, "NEUTRAL");
+            const chance = getField(/CHANCE:\s*(\d+%?)/i, "50%");
+            const risk = getField(/RISK:\s*(\w+)/i, "MEDIUM");
+
+            const getSection = (start, end) => {
+                const parts = text.split(start);
+                if (parts.length < 2) return "";
+                const content = parts[1].split(end)[0];
+                return content.trim();
+            };
+
+            const factorContent = getSection("SECTION_FACTORS:", "SECTION_UPCOMING:");
+            const upcomingContent = getSection("SECTION_UPCOMING:", "SECTION_LEVELS:");
+            const levelsContent = getSection("SECTION_LEVELS:", "SECTION_CORRELATION:");
+            const correlationContent = getSection("SECTION_CORRELATION:", "SECTION_PLAN:");
+            const planContent = getSection("SECTION_PLAN:", "METRICS:");
+
+            const formatBullets = (str) => {
+                if (!str) return "<p class='text-slate-600 italic'>No data available for this section.</p>";
+                return str.split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 5)
+                    .map(line => {
+                        const cleanLine = line.replace(/^[-*•\d.]+\s*/, '');
+                        return `
+                            <div class="flex items-start gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 mb-3 group hover:border-white/10 transition-all">
+                                <span class="w-1.5 h-1.5 rounded-full bg-trading-accent mt-2.5 shrink-0 group-hover:scale-125 transition-transform"></span>
+                                <p class="text-sm md:text-base text-slate-300 leading-relaxed font-medium">${cleanLine}</p>
+                            </div>
+                        `;
+                    }).join('');
+            };
+
+            const trendColor = trend === 'UP' ? 'text-trading-accent' : (trend === 'DOWN' ? 'text-trading-danger' : 'text-trading-warn');
+
+            output.innerHTML = `
+                <div class="fade-in space-y-12">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-white/5 pb-8 gap-6">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-[0.4em] ${trendColor} mb-2">${trend} OUTLOOK</p>
+                            <h2 class="text-3xl md:text-5xl font-black text-white italic tracking-tighter uppercase">${header}</h2>
+                        </div>
+                        <div class="bg-white/5 p-4 rounded-3xl border border-white/5 text-center min-w-[120px]">
+                            <p class="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1">PROBABILITY</p>
+                            <p class="text-3xl font-black text-white italic">${chance}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <section>
+                            <h3 class="text-[10px] font-black uppercase tracking-[0.5em] text-slate-500 mb-6">Current Market Drivers</h3>
+                            ${formatBullets(factorContent)}
+                        </section>
+                        <section>
+                            <h3 class="text-[10px] font-black uppercase tracking-[0.5em] text-trading-accent mb-6">Upcoming Events & Predictions</h3>
+                            ${formatBullets(upcomingContent)}
+                        </section>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <section>
+                            <h3 class="text-[10px] font-black uppercase tracking-[0.5em] text-trading-info mb-6">Institutional Levels</h3>
+                            ${formatBullets(levelsContent)}
+                        </section>
+                        <section>
+                            <h3 class="text-[10px] font-black uppercase tracking-[0.5em] text-trading-warn mb-6">Macro Environment (DXY)</h3>
+                            ${formatBullets(correlationContent)}
+                        </section>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/5">
+                        <div class="p-8 rounded-[2.5rem] bg-trading-accent/10 border border-trading-accent/20">
+                            <h4 class="text-[9px] font-black uppercase tracking-widest text-trading-accent mb-4">Tactical Plan</h4>
+                            <p class="text-white font-bold leading-relaxed text-lg">${planContent.replace(/^[-*•\d.]+\s*/, '')}</p>
+                        </div>
+                        <div class="p-8 rounded-[2.5rem] bg-white/5 border border-white/5 flex flex-col justify-center">
+                            <h4 class="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2">Risk Exposure</h4>
+                            <p class="text-2xl font-black text-white uppercase italic tracking-tighter">${risk}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            output.classList.remove('hidden');
+        }
+
+        document.getElementById('generate-btn').onclick = generateReport;
+    </script>
+</body>
+</html>
