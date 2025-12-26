@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Strategy Terminal</title>
+    <title>Global FX Daily Intel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         window.addEventListener('DOMContentLoaded', () => {
@@ -13,12 +13,11 @@
                         extend: {
                             fontFamily: { sans: ['Inter', 'sans-serif'] },
                             colors: {
-                                'trading-dark': '#07070a',
-                                'trading-card': '#0f0f16',
-                                'trading-accent': '#00ff9d', 
-                                'trading-danger': '#ff4646',
-                                'trading-warn': '#ffcc00',
-                                'trading-info': '#3b82f6'
+                                'regency-dark': '#0a0b10',
+                                'regency-card': '#12141c',
+                                'gold-accent': '#d4af37',
+                                'bull-green': '#00ff9d',
+                                'bear-red': '#ff4646'
                             }
                         }
                     }
@@ -28,356 +27,275 @@
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
-        body { background-color: #07070a; color: #ffffff; overflow-x: hidden; }
-        .glow-border { border: 1px solid rgba(0, 255, 157, 0.1); transition: all 0.3s ease; }
-        .glow-border:hover { border-color: rgba(0, 255, 157, 0.4); box-shadow: 0 0 20px rgba(0, 255, 157, 0.05); }
-        .strategy-card { background: #0f0f16; border: 1px solid #1a1a24; }
-        .ticker-wrap { width: 100%; overflow: hidden; background: #0f0f16; border-top: 1px solid #1a1a24; padding: 10px 0; position: fixed; bottom: 0; left: 0; z-index: 50; }
-        .ticker { display: inline-block; white-space: nowrap; animation: ticker 30s linear infinite; }
-        .ticker-item { display: inline-block; padding: 0 2rem; font-size: 10px; font-weight: 900; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
-        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .btn-glow:hover { box-shadow: 0 0 15px rgba(0, 255, 157, 0.3); }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #07070a; }
-        ::-webkit-scrollbar-thumb { background: #1a1a24; border-radius: 10px; }
-        .fade-in { animation: fadeIn 0.5s ease forwards; }
+        body { background-color: #0a0b10; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .glass-panel { background: rgba(18, 20, 28, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .gradient-text { background: linear-gradient(135deg, #fff 0%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .pair-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .pair-btn:hover { border-color: #d4af37; transform: translateY(-2px); }
+        .loader-ring { border-top-color: #d4af37; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-8 font-sans pb-24 flex items-center justify-center">
-    <div class="w-full max-w-7xl mx-auto space-y-6">
-        
-        <header class="flex flex-col md:flex-row justify-between items-center gap-6 bg-trading-card/50 p-6 md:p-8 rounded-[2rem] border border-white/5 backdrop-blur-md">
-            <div class="flex flex-col items-center md:items-start text-center md:text-left">
-                <h1 class="text-2xl md:text-3xl font-black tracking-tighter text-white uppercase flex items-center gap-2">
-                    <span class="bg-trading-accent text-black px-2 py-0.5 rounded italic">FX</span> STRATEGY
-                </h1>
-                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.3em] mt-1">Institutional Intelligence Terminal</p>
+<body class="min-h-screen flex flex-col items-center py-10 px-4 md:px-10">
+    
+    <div class="w-full max-w-6xl space-y-8">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div>
+                <h1 class="text-3xl font-black tracking-tighter uppercase italic gradient-text">DAILY <span class="text-gold-accent">INTEL</span></h1>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-[0.4em]">Major Pairs Intelligence Hub</p>
             </div>
-            
-            <div class="flex flex-wrap justify-center items-center gap-4 md:gap-8">
-                <div class="text-center md:text-right border-r border-white/10 pr-4 md:pr-8 hidden sm:block">
-                    <p class="text-[9px] text-slate-500 uppercase font-black tracking-widest">Market Time (UTC)</p>
-                    <p id="live-clock" class="text-xl font-mono font-bold text-white tracking-widest">00:00:00</p>
+            <div class="flex gap-4 items-center">
+                <div class="text-right">
+                    <p class="text-[9px] text-slate-500 font-bold uppercase">Terminal Status</p>
+                    <p class="text-xs font-mono text-bull-green">SYSTEM_ACTIVE_V2.5</p>
                 </div>
-                <div id="session-tag" class="px-5 py-2.5 rounded-2xl bg-trading-accent/10 text-[10px] font-black tracking-widest uppercase text-trading-accent border border-trading-accent/20">
-                    HOSTED CLOUD READY
-                </div>
+                <div class="h-10 w-[1px] bg-white/10"></div>
+                <div id="utc-clock" class="text-xl font-mono font-bold tracking-widest text-white">00:00:00</div>
             </div>
-        </header>
+        </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            <div class="lg:col-span-4 space-y-4">
-                <div class="strategy-card p-8 rounded-[2.5rem] glow-border shadow-2xl">
-                    <div class="flex items-center justify-between mb-10">
-                        <span class="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em]">Command Center</span>
-                        <span class="w-2 h-2 rounded-full bg-trading-accent animate-pulse"></span>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Control Sidebar -->
+            <div class="space-y-6">
+                <div class="glass-panel rounded-3xl p-6 shadow-2xl">
+                    <h2 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-6">Select Instrument</h2>
+                    <div class="grid grid-cols-2 gap-3 mb-8">
+                        <button onclick="selectPair('EUR/USD')" class="pair-btn p-4 rounded-2xl border border-white/5 bg-white/5 text-xs font-bold hover:bg-gold-accent/10">EUR/USD</button>
+                        <button onclick="selectPair('GBP/USD')" class="pair-btn p-4 rounded-2xl border border-white/5 bg-white/5 text-xs font-bold hover:bg-gold-accent/10">GBP/USD</button>
+                        <button onclick="selectPair('USD/JPY')" class="pair-btn p-4 rounded-2xl border border-white/5 bg-white/5 text-xs font-bold hover:bg-gold-accent/10">USD/JPY</button>
+                        <button onclick="selectPair('AUD/USD')" class="pair-btn p-4 rounded-2xl border border-white/5 bg-white/5 text-xs font-bold hover:bg-gold-accent/10">AUD/USD</button>
+                        <button onclick="selectPair('USD/CAD')" class="pair-btn p-4 rounded-2xl border border-white/5 bg-white/5 text-xs font-bold hover:bg-gold-accent/10">USD/CAD</button>
+                        <button onclick="selectPair('XAU/USD')" class="pair-btn p-4 rounded-2xl border border-white/5 bg-white/5 text-xs font-bold hover:bg-gold-accent/10 text-gold-accent">GOLD</button>
                     </div>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <label class="text-[10px] uppercase font-bold text-slate-500 mb-3 block ml-1 tracking-widest">Asset Pair</label>
-                            <input type="text" id="pair-input" placeholder="e.g. EUR/USD" 
-                                   class="w-full bg-trading-dark border border-slate-800 rounded-[1.25rem] p-5 text-white font-black text-lg focus:outline-none focus:border-trading-accent transition-all placeholder:text-slate-800 shadow-inner">
-                        </div>
 
-                        <div class="grid grid-cols-2 gap-3">
-                            <button class="py-4 bg-slate-900/30 border border-slate-800 rounded-2xl text-[11px] font-black hover:bg-trading-accent hover:text-black transition-all text-white uppercase tracking-tighter" onclick="setPair('EUR/USD')">EURUSD</button>
-                            <button class="py-4 bg-slate-900/30 border border-slate-800 rounded-2xl text-[11px] font-black hover:bg-trading-accent hover:text-black transition-all text-white uppercase tracking-tighter" onclick="setPair('GBP/USD')">GBPUSD</button>
-                            <button class="py-4 bg-slate-900/30 border border-slate-800 rounded-2xl text-[11px] font-black hover:bg-trading-accent hover:text-black transition-all text-white uppercase tracking-tighter" onclick="setPair('XAU/USD')">GOLD</button>
-                            <button class="py-4 bg-slate-900/30 border border-slate-800 rounded-2xl text-[11px] font-black hover:bg-trading-accent hover:text-black transition-all text-white uppercase tracking-tighter" onclick="setPair('USD/JPY')">USDJPY</button>
-                        </div>
-
-                        <button id="generate-btn" class="btn-glow w-full bg-trading-accent text-black font-black py-6 rounded-3xl mt-4 hover:scale-[1.01] active:scale-[0.98] transition-all uppercase tracking-tighter text-sm">
-                            Run Analysis
+                    <div class="space-y-4">
+                        <input type="text" id="target-pair" placeholder="ENTER SYMBOL..." class="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-center font-black text-white focus:outline-none focus:border-gold-accent transition-colors">
+                        <button id="analyze-trigger" class="w-full bg-gold-accent text-black font-black py-5 rounded-2xl uppercase tracking-tighter hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-gold-accent/20">
+                            Generate Report
                         </button>
                     </div>
                 </div>
 
-                <div class="strategy-card p-6 rounded-[2rem] border border-slate-800/50 flex flex-col gap-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                    <div class="flex justify-between items-center">
-                        <span>Engine Status</span>
-                        <span id="search-status" class="text-trading-accent font-black">Connected</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span>Security</span>
-                        <span class="text-trading-info font-black">CORS Optimized</span>
+                <div class="glass-panel rounded-3xl p-6 border-l-4 border-gold-accent">
+                    <h3 class="text-[10px] font-black uppercase text-slate-500 mb-2">Live News Pulse</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center text-[10px]">
+                            <span class="text-slate-400">FXStreet Stream</span>
+                            <span class="text-bull-green">SYNCED</span>
+                        </div>
+                        <div class="flex justify-between items-center text-[10px]">
+                            <span class="text-slate-400">ForexFactory Cal</span>
+                            <span class="text-bull-green">SYNCED</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="lg:col-span-8">
-                <div id="report-container" class="strategy-card rounded-[3rem] p-6 md:p-12 min-h-[680px] border border-slate-800/50 relative overflow-hidden flex flex-col items-center justify-center">
+            <!-- Main Content Area -->
+            <div class="lg:col-span-2">
+                <div id="content-container" class="glass-panel rounded-[2.5rem] p-8 md:p-12 min-h-[600px] relative overflow-hidden flex items-center justify-center">
                     
-                    <div id="loading-state" class="hidden space-y-10 py-20 text-center w-full">
-                        <div class="relative flex justify-center">
-                            <div class="w-24 h-24 rounded-full border-b-2 border-trading-accent animate-spin"></div>
-                            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-trading-accent font-black text-[10px] tracking-widest">AI</div>
+                    <!-- Welcome State -->
+                    <div id="state-welcome" class="text-center space-y-6">
+                        <div class="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto border border-white/10 mb-4">
+                            <svg class="w-10 h-10 text-gold-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
                         </div>
+                        <h2 class="text-2xl font-black uppercase italic tracking-tight">Ready for <span class="text-gold-accent">Deployment</span></h2>
+                        <p class="text-slate-500 text-sm max-w-xs mx-auto leading-relaxed">Select a major pair to synchronize current market sentiment from FXStreet and ForexFactory events.</p>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="state-loading" class="hidden text-center space-y-8 py-20">
+                        <div class="w-20 h-20 border-4 border-white/5 loader-ring rounded-full mx-auto"></div>
                         <div class="space-y-2">
-                            <p class="text-white font-black uppercase tracking-[0.5em] text-xs">Computing Institutional Bias...</p>
-                            <p class="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px]" id="loading-sub">Decoding Volatility Patterns</p>
+                            <p class="text-white font-black text-xs uppercase tracking-[0.3em]">Decoding News Sentiment</p>
+                            <p class="text-slate-500 font-bold text-[10px] uppercase animate-pulse">Scanning FXStreet & ForexFactory...</p>
                         </div>
                     </div>
 
-                    <div id="initial-state" class="flex flex-col items-center justify-center h-full text-center py-10 w-full">
-                        <div class="relative mb-14">
-                            <div class="absolute inset-0 bg-trading-accent/10 blur-[100px] rounded-full"></div>
-                            <div class="relative w-36 h-36 bg-slate-900/30 rounded-full flex items-center justify-center border border-white/5 shadow-2xl backdrop-blur-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-trading-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
-                                </svg>
-                            </div>
-                        </div>
-                        <h2 class="text-4xl font-black text-white mb-6 tracking-tighter uppercase italic leading-none">Market <span class="text-trading-accent">Intel</span></h2>
-                        <p class="text-slate-500 max-w-sm text-sm font-semibold leading-relaxed mb-12">Institutional-grade analysis optimized for GitHub deployment.</p>
-                    </div>
-
-                    <div id="report-output" class="hidden w-full space-y-8 h-full"></div>
+                    <!-- Report Output Area -->
+                    <div id="state-report" class="hidden w-full h-full space-y-10 fade-in"></div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div class="ticker-wrap">
-        <div class="ticker">
-            <div class="ticker-item">SYSTEM STATUS: OPTIMIZED</div>
-            <div class="ticker-item text-trading-accent">PRODUCTION DEPLOYMENT: READY</div>
-            <div class="ticker-item">COMPATIBILITY: v2.5 PREVIEW</div>
-            <div class="ticker-item text-trading-accent">API HANDLER: GITHUB READY</div>
         </div>
     </div>
 
     <script>
-        const apiKey = ""; 
-        // Using the supported model for the preview environment
-        const modelName = 'gemini-2.5-flash-preview-09-2025'; 
+        const apiKey = "";
+        const modelName = 'gemini-2.5-flash-preview-09-2025';
 
+        // Timer
         function updateClock() {
             const now = new Date();
-            const timeStr = now.getUTCHours().toString().padStart(2, '0') + ":" + 
-                            now.getUTCMinutes().toString().padStart(2, '0') + ":" + 
-                            now.getUTCSeconds().toString().padStart(2, '0');
-            const clockEl = document.getElementById('live-clock');
-            if (clockEl) clockEl.textContent = timeStr;
+            document.getElementById('utc-clock').textContent = 
+                now.getUTCHours().toString().padStart(2, '0') + ":" +
+                now.getUTCMinutes().toString().padStart(2, '0') + ":" +
+                now.getUTCSeconds().toString().padStart(2, '0');
         }
         setInterval(updateClock, 1000);
         updateClock();
 
-        function setPair(p) { document.getElementById('pair-input').value = p; }
+        function selectPair(p) {
+            document.getElementById('target-pair').value = p;
+        }
 
-        /**
-         * Mandatory exponential backoff implementation for Gemini API calls.
-         */
         async function fetchWithRetry(url, options, maxRetries = 5) {
-            let lastError;
             const delays = [1000, 2000, 4000, 8000, 16000];
-            
+            let lastError;
             for (let i = 0; i < maxRetries; i++) {
                 try {
                     const response = await fetch(url, options);
                     const data = await response.json();
-                    
-                    if (response.ok) {
-                        return data;
-                    } else {
-                        // Handle 403 or 404 with retry or throw
-                        if (response.status === 403 || response.status === 429) {
-                            if (i === maxRetries - 1) {
-                                throw new Error(`AUTH_ERROR: Check API key and service permissions. Status: ${response.status}`);
-                            }
-                        } else {
-                            throw new Error(`API_ERROR: ${response.status} - ${data.error?.message || 'Unexpected response'}`);
-                        }
-                    }
+                    if (response.ok) return data;
+                    if (response.status === 403) throw new Error("AUTH_ERROR: Permission denied.");
+                    lastError = new Error(data.error?.message || `API Error: ${response.status}`);
                 } catch (err) {
                     lastError = err;
-                    if (i < maxRetries - 1) {
-                        await new Promise(resolve => setTimeout(resolve, delays[i]));
-                    }
+                    if (err.message.includes("AUTH_ERROR")) throw err;
                 }
+                if (i < maxRetries - 1) await new Promise(r => setTimeout(r, delays[i]));
             }
             throw lastError;
         }
 
-        async function generateReport() {
-            const pair = document.getElementById('pair-input').value.trim().toUpperCase() || "EUR/USD";
-            const btn = document.getElementById('generate-btn');
-            const loading = document.getElementById('loading-state');
-            const initial = document.getElementById('initial-state');
-            const output = document.getElementById('report-output');
+        async function runAnalysis() {
+            const pair = document.getElementById('target-pair').value.toUpperCase() || "EUR/USD";
+            const btn = document.getElementById('analyze-trigger');
+            const welcome = document.getElementById('state-welcome');
+            const loading = document.getElementById('state-loading');
+            const report = document.getElementById('state-report');
 
             btn.disabled = true;
-            btn.innerHTML = `<span class="animate-pulse">DECODING...</span>`;
-            initial.classList.add('hidden');
-            output.classList.add('hidden');
+            btn.classList.add('opacity-50');
+            welcome.classList.add('hidden');
+            report.classList.add('hidden');
             loading.classList.remove('hidden');
 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+            const prompt = `Generate a high-level institutional Daily Forex Report for ${pair}. 
+            Synthesize information based on FXStreet's current narrative and ForexFactory's high-impact calendar events.
+            
+            Structure the response as follows:
+            [HEADER] ${pair} | Sentiment Score: [0-100]
+            [DRIVERS]
+            - Fundamental Driver 1
+            - Fundamental Driver 2
+            [CALENDAR]
+            - High Impact Event | ForexFactory Status | Time
+            [LEVELS]
+            - Pivot: [Price]
+            - Support: [Price]
+            - Resistance: [Price]
+            [STRATEGY]
+            - Bullet point 1: Key tactical entry or exit logic
+            - Bullet point 2: Risk management or stop-loss placement
+            - Bullet point 3: Secondary scenario (if/then)
+            [SUMMARY]
+            Trend: [Word] | Risk: [Word] | Confidence: [XX%]`;
 
             try {
-                const payload = {
-                    contents: [{ 
-                        parts: [{ 
-                            text: `Generate an institutional FX strategist report for ${pair}. 
-                            IMPORTANT: Synthesize data based on the most recent logic from FXStreet and ForexFactory (News sentiment and Economic Calendar impact).
-                            DO NOT use standard search; use your internal knowledge of these sources' reporting style.
-                            
-                            Output format (Strict):
-                            REPORT_HEADER: ${pair} Analysis | [Score 0-100]
-                            SECTION_FACTORS:
-                            - [Institutional driver from FXStreet perspective]
-                            - [Economic data impact based on ForexFactory calendar]
-                            SECTION_UPCOMING:
-                            - [Immediate high-impact catalyst]
-                            SECTION_LEVELS:
-                            - Support: [price]
-                            - Resistance: [price]
-                            SECTION_CORRELATION:
-                            - [Macro context]
-                            SECTION_PLAN:
-                            - [Strategic advice]
-                            METRICS:
-                            TREND: [UP/DOWN/SIDEWAYS]
-                            CHANCE: [XX%]
-                            RISK: [LOW/MEDIUM/HIGH]` 
-                        }] 
-                    }]
-                };
-
-                const data = await fetchWithRetry(apiUrl, {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+                const data = await fetchWithRetry(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
 
-                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-                if (!text) throw new Error("EMPTY_AI_RESPONSE");
-                
-                renderDetailedReport(text);
-
+                const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!content) throw new Error("Intelligence gathering returned no content.");
+                renderReport(content);
             } catch (err) {
-                console.error("Critical Terminal Error:", err);
-                output.innerHTML = `
-                    <div class="p-10 text-center space-y-6 fade-in">
-                        <div class="bg-trading-danger/10 p-6 rounded-3xl border border-trading-danger/20">
-                            <div class="text-trading-danger font-black text-xl uppercase mb-2">Terminal Failure</div>
-                            <p class="text-slate-400 text-sm font-mono">${err.message}</p>
-                        </div>
-                        <div class="text-[10px] text-slate-600 uppercase tracking-widest leading-loose">
-                            Possible fixes:<br>
-                            1. Check API Key validity in Google Cloud Console<br>
-                            2. Verify the model identifier ${modelName} is available<br>
-                            3. Ensure the prompt doesn't violate safety guidelines
-                        </div>
-                        <button class="px-8 py-3 bg-white/5 border border-white/10 text-white rounded-2xl hover:bg-white/10 transition-all font-bold uppercase text-xs tracking-tighter" onclick="location.reload()">Reset Terminal</button>
-                    </div>`;
-                output.classList.remove('hidden');
+                report.innerHTML = `<div class="text-center p-10 bg-bear-red/10 rounded-3xl border border-bear-red/20 fade-in">
+                    <p class="text-bear-red font-black uppercase text-xs mb-2">Terminal Error</p>
+                    <p class="text-slate-400 text-xs font-mono mb-4">${err.message}</p>
+                    <button onclick="location.reload()" class="text-[10px] text-white/50 underline uppercase tracking-widest">Restart Engine</button>
+                </div>`;
+                report.classList.remove('hidden');
             } finally {
                 loading.classList.add('hidden');
                 btn.disabled = false;
-                btn.textContent = "Run Analysis";
+                btn.classList.remove('opacity-50');
             }
         }
 
-        function renderDetailedReport(text) {
-            const output = document.getElementById('report-output');
-            const getField = (regex, fallback) => {
-                const match = text.match(regex);
-                return match ? match[1].trim() : fallback;
+        function renderReport(raw) {
+            const report = document.getElementById('state-report');
+            const extract = (section) => {
+                const parts = raw.split(`[${section}]`);
+                if (parts.length < 2) return "";
+                return parts[1].split('[')[0].trim();
             };
 
-            const header = getField(/REPORT_HEADER:\s*(.*)/i, "MARKET ANALYSIS");
-            const trend = getField(/TREND:\s*(\w+)/i, "NEUTRAL");
-            const chance = getField(/CHANCE:\s*(\d+%?)/i, "50%");
-            const risk = getField(/RISK:\s*(\w+)/i, "MEDIUM");
+            const header = extract('HEADER');
+            const drivers = extract('DRIVERS');
+            const calendar = extract('CALENDAR');
+            const levels = extract('LEVELS');
+            const strategy = extract('STRATEGY');
+            const summary = extract('SUMMARY');
 
-            const getSection = (start, end) => {
-                const parts = text.split(start);
-                if (parts.length < 2) return "Metric decoding failed.";
-                return parts[1].split(end)[0].trim();
-            };
+            const formatList = (str, accentColor = "gold-accent") => str.split('\n').filter(s => s.trim()).map(item => `
+                <div class="flex items-start gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 mb-3">
+                    <div class="w-1 h-1 rounded-full bg-${accentColor} mt-2"></div>
+                    <p class="text-xs text-slate-300 leading-relaxed font-semibold">${item.replace(/^- /, '')}</p>
+                </div>
+            `).join('');
 
-            const factorContent = getSection("SECTION_FACTORS:", "SECTION_UPCOMING:");
-            const upcomingContent = getSection("SECTION_UPCOMING:", "SECTION_LEVELS:");
-            const levelsContent = getSection("SECTION_LEVELS:", "SECTION_CORRELATION:");
-            const correlationContent = getSection("SECTION_CORRELATION:", "SECTION_PLAN:");
-            const planContent = getSection("SECTION_PLAN:", "METRICS:");
-
-            const formatBullets = (str) => {
-                return str.split('\n').filter(l => l.length > 3).map(line => `
-                    <div class="flex items-start gap-3 p-4 bg-white/5 rounded-2xl border border-white/5 mb-3">
-                        <span class="w-1.5 h-1.5 rounded-full bg-trading-accent mt-2 shrink-0"></span>
-                        <p class="text-sm text-slate-300 font-medium">${line.replace(/^[-*•\d.]+\s*/, '')}</p>
-                    </div>`).join('');
-            };
-
-            output.innerHTML = `
-                <div class="fade-in space-y-8">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-end border-b border-white/5 pb-8 gap-4">
-                        <div>
-                            <p class="text-[10px] font-black uppercase text-trading-accent tracking-widest mb-2">${trend} DIRECTIONAL BIAS</p>
-                            <h2 class="text-3xl font-black text-white italic uppercase tracking-tighter">${header}</h2>
-                        </div>
-                        <div class="flex gap-2">
-                            <div class="bg-white/5 px-6 py-3 rounded-2xl border border-white/10 text-center">
-                                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">ACCURACY</p>
-                                <p class="text-xl font-black text-white">${chance}</p>
-                            </div>
-                            <div class="bg-white/5 px-6 py-3 rounded-2xl border border-white/10 text-center">
-                                <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">RISK</p>
-                                <p class="text-xl font-black ${risk.toLowerCase() === 'high' ? 'text-trading-danger' : 'text-trading-warn'}">${risk}</p>
-                            </div>
-                        </div>
+            report.innerHTML = `
+                <div class="space-y-10">
+                    <div class="border-b border-white/10 pb-8">
+                        <span class="text-[10px] font-black uppercase text-gold-accent tracking-[0.3em] mb-2 block">Institutional Intelligence</span>
+                        <h2 class="text-4xl font-black italic tracking-tighter uppercase text-white">${header}</h2>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
-                            <h3 class="text-[10px] font-black uppercase text-slate-500 mb-5 tracking-widest flex items-center gap-2">
-                                <span class="w-1 h-3 bg-slate-700 rounded-full"></span> Fundamental Logic
-                            </h3>
-                            ${formatBullets(factorContent)}
+                            <h3 class="text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest">Sentiment Drivers</h3>
+                            ${formatList(drivers)}
                         </div>
                         <div>
-                            <h3 class="text-[10px] font-black uppercase text-trading-accent mb-5 tracking-widest flex items-center gap-2">
-                                <span class="w-1 h-3 bg-trading-accent/50 rounded-full"></span> Market Catalysts
-                            </h3>
-                            ${formatBullets(upcomingContent)}
+                            <h3 class="text-[10px] font-black uppercase text-slate-500 mb-4 tracking-widest text-gold-accent">Catalyst Map</h3>
+                            ${formatList(calendar)}
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div>
-                            <h3 class="text-[10px] font-black uppercase text-trading-info mb-5 tracking-widest flex items-center gap-2">
-                                <span class="w-1 h-3 bg-trading-info/50 rounded-full"></span> High Volume Nodes
-                            </h3>
-                            ${formatBullets(levelsContent)}
-                        </div>
-                        <div>
-                            <h3 class="text-[10px] font-black uppercase text-trading-warn mb-5 tracking-widest flex items-center gap-2">
-                                <span class="w-1 h-3 bg-trading-warn/50 rounded-full"></span> Macro Sentiment
-                            </h3>
-                            ${formatBullets(correlationContent)}
-                        </div>
-                    </div>
-
-                    <div class="p-8 rounded-[2.5rem] bg-trading-accent/10 border border-trading-accent/20 backdrop-blur-md">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="p-2 bg-trading-accent/20 rounded-lg">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-trading-accent" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
-                                </svg>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white/5 p-6 rounded-3xl border border-white/10">
+                            <h4 class="text-[9px] font-black uppercase text-slate-500 mb-3">Technical Zones</h4>
+                            <div class="space-y-2 font-mono text-sm font-bold text-slate-400">
+                                ${levels.split('\n').map(l => `<div>${l}</div>`).join('')}
                             </div>
-                            <h4 class="text-[10px] font-black text-trading-accent uppercase tracking-[0.2em]">Institutional Execution Strategy</h4>
                         </div>
-                        <p class="text-white font-bold leading-relaxed">${planContent.split('\n').filter(l => l.length > 5).join(' ')}</p>
+                        <div class="md:col-span-2 bg-gold-accent/5 p-6 rounded-3xl border border-gold-accent/20">
+                            <h4 class="text-[9px] font-black uppercase text-gold-accent mb-3">Execution Strategy (Tactical Steps)</h4>
+                            <div class="space-y-1">
+                                ${formatList(strategy, "gold-accent")}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-4 bg-black/40 p-6 rounded-3xl border border-white/5 justify-between items-center">
+                        <div class="flex items-center gap-6">
+                            ${summary.split('|').map(item => {
+                                const pair = item.split(':');
+                                if (pair.length < 2) return "";
+                                return `<div>
+                                    <p class="text-[8px] font-black uppercase text-slate-500">${pair[0].trim()}</p>
+                                    <p class="text-sm font-black text-white uppercase italic">${pair[1].trim()}</p>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                        <div class="px-6 py-3 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                            Sync: ${new Date().toLocaleTimeString()}
+                        </div>
                     </div>
                 </div>
             `;
-            output.classList.remove('hidden');
+            report.classList.remove('hidden');
         }
 
-        document.getElementById('generate-btn').onclick = generateReport;
+        document.getElementById('analyze-trigger').onclick = runAnalysis;
     </script>
 </body>
 </html>
